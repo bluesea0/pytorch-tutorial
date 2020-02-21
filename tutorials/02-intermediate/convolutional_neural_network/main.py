@@ -4,7 +4,7 @@ import torchvision
 import torchvision.transforms as transforms
 
 
-# Device configuration
+# Device configuration #判断GPU是否可用
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 # Hyper parameters
@@ -17,7 +17,7 @@ learning_rate = 0.001
 train_dataset = torchvision.datasets.MNIST(root='../../data/',
                                            train=True, 
                                            transform=transforms.ToTensor(),
-                                           download=True)
+                                           download=False)
 
 test_dataset = torchvision.datasets.MNIST(root='../../data/',
                                           train=False, 
@@ -35,13 +35,13 @@ test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
 # Convolutional neural network (two convolutional layers)
 class ConvNet(nn.Module):
     def __init__(self, num_classes=10):
-        super(ConvNet, self).__init__()
+        super(ConvNet, self).__init__()#初始化参数，所以在本子类中就不必要再有初始化的操作了。
         self.layer1 = nn.Sequential(
             nn.Conv2d(1, 16, kernel_size=5, stride=1, padding=2),
             nn.BatchNorm2d(16),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2))
-        self.layer2 = nn.Sequential(
+        self.layer2 = nn.Sequential(#(*args)，原来它的参数时任意的，是一个序列的容器。模型层的容器。
             nn.Conv2d(16, 32, kernel_size=5, stride=1, padding=2),
             nn.BatchNorm2d(32),
             nn.ReLU(),
@@ -65,7 +65,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 total_step = len(train_loader)
 for epoch in range(num_epochs):
     for i, (images, labels) in enumerate(train_loader):
-        images = images.to(device)
+        images = images.to(device)#感觉这样好麻烦，能否直接将train_set放到GPU上呢？
         labels = labels.to(device)
         
         # Forward pass

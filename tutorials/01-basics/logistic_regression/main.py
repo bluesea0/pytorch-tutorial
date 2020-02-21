@@ -31,15 +31,16 @@ test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                           shuffle=False)
 
 # Logistic regression model
-model = nn.Linear(input_size, num_classes)
+model = nn.Linear(input_size, num_classes)#不是逻辑回归，为什么这里是线性的？
+#激活函数不应该是1/(1+e^-x)吗？
 
 # Loss and optimizer
 # nn.CrossEntropyLoss() computes softmax internally
-criterion = nn.CrossEntropyLoss()  
+criterion = nn.CrossEntropyLoss()#交叉熵损失，适用于C分类
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)  
 
 # Train the model
-total_step = len(train_loader)
+total_step = len(train_loader)#直接这样计算数据集的大小即可。
 for epoch in range(num_epochs):
     for i, (images, labels) in enumerate(train_loader):
         # Reshape images to (batch_size, input_size)
@@ -60,13 +61,13 @@ for epoch in range(num_epochs):
 
 # Test the model
 # In test phase, we don't need to compute gradients (for memory efficiency)
-with torch.no_grad():
+with torch.no_grad():#保持所有的参数都不更新
     correct = 0
     total = 0
     for images, labels in test_loader:
         images = images.reshape(-1, input_size)
         outputs = model(images)
-        _, predicted = torch.max(outputs.data, 1)
+        _, predicted = torch.max(outputs.data, 1)#返回最大值的确切值+最大值的index
         total += labels.size(0)
         correct += (predicted == labels).sum()
 

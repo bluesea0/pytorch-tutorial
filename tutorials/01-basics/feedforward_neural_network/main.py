@@ -3,9 +3,7 @@ import torch.nn as nn
 import torchvision
 import torchvision.transforms as transforms
 
-
-# Device configuration
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')#判断是否可用GPU
 
 # Hyper-parameters 
 input_size = 784
@@ -19,7 +17,7 @@ learning_rate = 0.001
 train_dataset = torchvision.datasets.MNIST(root='../../data', 
                                            train=True, 
                                            transform=transforms.ToTensor(),  
-                                           download=True)
+                                           download=False)
 
 test_dataset = torchvision.datasets.MNIST(root='../../data', 
                                           train=False, 
@@ -42,13 +40,13 @@ class NeuralNet(nn.Module):
         self.relu = nn.ReLU()
         self.fc2 = nn.Linear(hidden_size, num_classes)  
     
-    def forward(self, x):
+    def forward(self, x):#厉害了，我明白了！
         out = self.fc1(x)
         out = self.relu(out)
         out = self.fc2(out)
         return out
 
-model = NeuralNet(input_size, hidden_size, num_classes).to(device)
+model = NeuralNet(input_size, hidden_size, num_classes).to(device)#将定义的模型转到GPU上
 
 # Loss and optimizer
 criterion = nn.CrossEntropyLoss()
@@ -58,20 +56,20 @@ optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 total_step = len(train_loader)
 for epoch in range(num_epochs):
     for i, (images, labels) in enumerate(train_loader):  
-        # Move tensors to the configured device
+        # Move tensors to the configured device#处理数据
         images = images.reshape(-1, 28*28).to(device)
         labels = labels.to(device)
         
-        # Forward pass
+        # Forward pass#准备模型
         outputs = model(images)
         loss = criterion(outputs, labels)
         
-        # Backward and optimize
+        # Backward and optimize#后向传播和最优化
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
         
-        if (i+1) % 100 == 0:
+        if (i+1) % 100 == 0:#打印结果。
             print ('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}' 
                    .format(epoch+1, num_epochs, i+1, total_step, loss.item()))
 
@@ -85,10 +83,11 @@ with torch.no_grad():
         labels = labels.to(device)
         outputs = model(images)
         _, predicted = torch.max(outputs.data, 1)
-        total += labels.size(0)
-        correct += (predicted == labels).sum().item()
+        total += labels.size(0)#本batch共有多少个样本
+        correct += (predicted == labels).sum().item()#的数目，item能将tensor转换为单个的数？是的
 
     print('Accuracy of the network on the 10000 test images: {} %'.format(100 * correct / total))
 
 # Save the model checkpoint
 torch.save(model.state_dict(), 'model.ckpt')
+#其实你看多了，就会发现大同小异啊。

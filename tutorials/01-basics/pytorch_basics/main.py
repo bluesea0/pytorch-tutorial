@@ -24,6 +24,7 @@ import torchvision.transforms as transforms
 
 # Create tensors.
 x = torch.tensor(1., requires_grad=True)
+#这里我觉得太详细的我不用去了解，requeires_grad=True表示在bp时需要进行反向传播
 w = torch.tensor(2., requires_grad=True)
 b = torch.tensor(3., requires_grad=True)
 
@@ -31,7 +32,7 @@ b = torch.tensor(3., requires_grad=True)
 y = w * x + b    # y = 2 * x + 3
 
 # Compute gradients.
-y.backward()
+y.backward()#使用链式法则在计算图中，计算当前tensor的梯度
 
 # Print out the gradients.
 print(x.grad)    # x.grad = 2 
@@ -48,12 +49,12 @@ x = torch.randn(10, 3)
 y = torch.randn(10, 2)
 
 # Build a fully connected layer.
-linear = nn.Linear(3, 2)
-print ('w: ', linear.weight)
+linear = nn.Linear(3, 2)#(in_features, out_features, bias=True)
+print ('w: ', linear.weight)#返回有这两个变量
 print ('b: ', linear.bias)
 
 # Build loss function and optimizer.
-criterion = nn.MSELoss()
+criterion = nn.MSELoss()#最小平方误差
 optimizer = torch.optim.SGD(linear.parameters(), lr=0.01)
 
 # Forward pass.
@@ -64,15 +65,15 @@ loss = criterion(pred, y)
 print('loss: ', loss.item())
 
 # Backward pass.
-loss.backward()
+loss.backward()#计算梯度
 
 # Print out the gradients.
 print ('dL/dw: ', linear.weight.grad) 
 print ('dL/db: ', linear.bias.grad)
 
 # 1-step gradient descent.
-optimizer.step()
-
+optimizer.step()#用来更新参数，相当于梯度下降的等式，
+#=下面的说法
 # You can also perform gradient descent at the low level.
 # linear.weight.data.sub_(0.01 * linear.weight.grad.data)
 # linear.bias.data.sub_(0.01 * linear.bias.grad.data)
@@ -105,8 +106,8 @@ z = y.numpy()
 train_dataset = torchvision.datasets.CIFAR10(root='../../data/',
                                              train=True, 
                                              transform=transforms.ToTensor(),
-                                             download=True)
-
+                                             download=False)
+#是面向CV的，包括常用数据集，模型结构，CV常见的一些图像转换。
 # Fetch one data pair (read data from disk).
 image, label = train_dataset[0]
 print (image.size())
@@ -118,7 +119,7 @@ train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
                                            shuffle=True)
 
 # When iteration starts, queue and thread start to load data from files.
-data_iter = iter(train_loader)
+data_iter = iter(train_loader)#通常是对数据集建立
 
 # Mini-batch images and labels.
 images, labels = data_iter.next()
@@ -164,7 +165,7 @@ train_loader = torch.utils.data.DataLoader(dataset=custom_dataset,
 resnet = torchvision.models.resnet18(pretrained=True)
 
 # If you want to finetune only the top layer of the model, set as below.
-for param in resnet.parameters():
+for param in resnet.parameters():#如果想要微调，就保持其参数不变
     param.requires_grad = False
 
 # Replace the top layer for finetuning.
@@ -181,7 +182,8 @@ print (outputs.size())     # (64, 100)
 # ================================================================== #
 
 # Save and load the entire model.
-torch.save(resnet, 'model.ckpt')
+torch.save(resnet, 'model.ckpt')#保存对象，到磁盘中
+#可以只保存模型参数，或保存整个模型。
 model = torch.load('model.ckpt')
 
 # Save and load only the model parameters (recommended).

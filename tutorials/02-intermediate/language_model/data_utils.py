@@ -33,14 +33,14 @@ class Corpus(object):
                     self.dictionary.add_word(word)  
         
         # Tokenize the file content
-        ids = torch.LongTensor(tokens)
+        ids = torch.LongTensor(tokens)  #txt中单词的总数
         token = 0
         with open(path, 'r') as f:
             for line in f:
                 words = line.split() + ['<eos>']
                 for word in words:
                     ids[token] = self.dictionary.word2idx[word]
-                    token += 1
+                    token += 1  #ids[i]表示第个token对应的id，0<=i<=tokens
         num_batches = ids.size(0) // batch_size
-        ids = ids[:num_batches*batch_size]
+        ids = ids[:num_batches*batch_size]  #原来是把多余的去掉了。是一个一维list
         return ids.view(batch_size, -1)

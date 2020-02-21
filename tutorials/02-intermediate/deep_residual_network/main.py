@@ -30,7 +30,7 @@ transform = transforms.Compose([
 train_dataset = torchvision.datasets.CIFAR10(root='../../data/',
                                              train=True, 
                                              transform=transform,
-                                             download=True)
+                                             download=False)
 
 test_dataset = torchvision.datasets.CIFAR10(root='../../data/',
                                             train=False, 
@@ -70,7 +70,7 @@ class ResidualBlock(nn.Module):
         out = self.bn2(out)
         if self.downsample:
             residual = self.downsample(x)
-        out += residual
+        out += residual#这样就保留了之前的输出和现在的结合了。
         out = self.relu(out)
         return out
 
@@ -88,7 +88,7 @@ class ResNet(nn.Module):
         self.avg_pool = nn.AvgPool2d(8)
         self.fc = nn.Linear(64, num_classes)
         
-    def make_layer(self, block, out_channels, blocks, stride=1):
+    def make_layer(self, block, out_channels, blocks, stride=1):#好复杂啊
         downsample = None
         if (stride != 1) or (self.in_channels != out_channels):
             downsample = nn.Sequential(
@@ -123,6 +123,8 @@ optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 # For updating learning rate
 def update_lr(optimizer, lr):    
     for param_group in optimizer.param_groups:
+        #相应的optimizer.state_dict()是函数，而这里是属性，不是函数调用。
+        #因为lr是在param_groups里的。
         param_group['lr'] = lr
 
 # Train the model
@@ -148,8 +150,8 @@ for epoch in range(num_epochs):
 
     # Decay learning rate
     if (epoch+1) % 20 == 0:
-        curr_lr /= 3
-        update_lr(optimizer, curr_lr)
+        curr_lr /= 3#对学习率衰减
+        update_lr(optimizer, curr_lr)#更新
 
 # Test the model
 model.eval()
@@ -168,3 +170,4 @@ with torch.no_grad():
 
 # Save the model checkpoint
 torch.save(model.state_dict(), 'resnet.ckpt')
+#因为我应该以后也用不到这个，所以没有特别认真地看。

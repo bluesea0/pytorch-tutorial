@@ -24,12 +24,13 @@ model = nn.Linear(input_size, output_size)
 
 # Loss and optimizer
 criterion = nn.MSELoss()
-optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)  
+optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)#需要指定要优化的参数和学习率
 
 # Train the model
 for epoch in range(num_epochs):
     # Convert numpy arrays to torch tensors
-    inputs = torch.from_numpy(x_train)
+    inputs = torch.from_numpy(x_train)#share the same memory，更改tensor会改变
+    #如果用torch.tensor的话，就会复制，而占用更多的内存空间
     targets = torch.from_numpy(y_train)
 
     # Forward pass
@@ -42,13 +43,13 @@ for epoch in range(num_epochs):
     optimizer.step()
     
     if (epoch+1) % 5 == 0:
-        print ('Epoch [{}/{}], Loss: {:.4f}'.format(epoch+1, num_epochs, loss.item()))
+        print ('Epoch [{}/{}], Loss: {:.4f}'.format(epoch+1, num_epochs, loss.item()))#{}占位符，:.4f保留四位小数
 
-# Plot the graph
-predicted = model(torch.from_numpy(x_train)).detach().numpy()
+# Plot the graph #share the same underlying storage.
+predicted = model(torch.from_numpy(x_train)).detach().numpy()#detach，Returns a new Tensor, detached from the current graph.
 plt.plot(x_train, y_train, 'ro', label='Original data')
 plt.plot(x_train, predicted, label='Fitted line')
-plt.legend()
+plt.legend()#使用图例
 plt.show()
 
 # Save the model checkpoint

@@ -21,7 +21,7 @@ learning_rate = 0.003
 train_dataset = torchvision.datasets.MNIST(root='../../data/',
                                            train=True, 
                                            transform=transforms.ToTensor(),
-                                           download=True)
+                                           download=False)
 
 test_dataset = torchvision.datasets.MNIST(root='../../data/',
                                           train=False, 
@@ -67,7 +67,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 # Train the model
 total_step = len(train_loader)
 for epoch in range(num_epochs):
-    for i, (images, labels) in enumerate(train_loader):
+    for i, (images, labels) in enumerate(train_loader):  #对dataloader可以直接枚举
         images = images.reshape(-1, sequence_length, input_size).to(device)
         labels = labels.to(device)
         

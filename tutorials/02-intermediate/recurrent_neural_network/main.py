@@ -21,8 +21,8 @@ learning_rate = 0.01
 train_dataset = torchvision.datasets.MNIST(root='../../data/',
                                            train=True, 
                                            transform=transforms.ToTensor(),
-                                           download=True)
-
+                                           download=False)
+#我觉得这个例子不好，已经到了RNN的地步，然后还用CV的作为样本。。
 test_dataset = torchvision.datasets.MNIST(root='../../data/',
                                           train=False, 
                                           transform=transforms.ToTensor())
@@ -46,15 +46,15 @@ class RNN(nn.Module):
         self.fc = nn.Linear(hidden_size, num_classes)
     
     def forward(self, x):
-        # Set initial hidden and cell states 
-        h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(device) 
-        c0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(device)
-        
+        # Set initial hidden and cell states  #因为是共用模型参数，参数量下降
+        h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(device)#隐层状态
+        c0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(device)#细胞状态
+        #x.size(0) 难道不是batch数吗？？？是的，是和定义一样的。
         # Forward propagate LSTM
         out, _ = self.lstm(x, (h0, c0))  # out: tensor of shape (batch_size, seq_length, hidden_size)
-        
+        #每一个句子都形成了一个输出矩阵。   #上面这个应该错了，应该是（seq_length，batch_size，hidden_size）
         # Decode the hidden state of the last time step
-        out = self.fc(out[:, -1, :])
+        out = self.fc(out[:, -1, :])#也就是只针对每句的最后一个单词输出？
         return out
 
 model = RNN(input_size, hidden_size, num_layers, num_classes).to(device)

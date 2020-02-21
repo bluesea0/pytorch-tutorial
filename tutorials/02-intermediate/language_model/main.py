@@ -33,7 +33,7 @@ class RNNLM(nn.Module):
         super(RNNLM, self).__init__()
         self.embed = nn.Embedding(vocab_size, embed_size)
         self.lstm = nn.LSTM(embed_size, hidden_size, num_layers, batch_first=True)
-        self.linear = nn.Linear(hidden_size, vocab_size)
+        self.linear = nn.Linear(hidden_size, vocab_size)    #不明白这里为什么是vocab_size
         
     def forward(self, x, h):
         # Embed word ids to vectors
@@ -47,7 +47,7 @@ class RNNLM(nn.Module):
         
         # Decode hidden states of all time steps
         out = self.linear(out)
-        return out, (h, c)
+        return out, (h, c)#这里的out是[atch_size*sequence_length, vocab_size]
 
 model = RNNLM(vocab_size, embed_size, hidden_size, num_layers).to(device)
 
@@ -55,7 +55,7 @@ model = RNNLM(vocab_size, embed_size, hidden_size, num_layers).to(device)
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
-# Truncated backpropagation
+# Truncated backpropagation 截断的反向传播
 def detach(states):
     return [state.detach() for state in states] 
 
@@ -64,12 +64,13 @@ for epoch in range(num_epochs):
     # Set initial hidden and cell states
     states = (torch.zeros(num_layers, batch_size, hidden_size).to(device),
               torch.zeros(num_layers, batch_size, hidden_size).to(device))
-    
-    for i in range(0, ids.size(1) - seq_length, seq_length):
+    #初始化这个地方有点意思，和之前的不一样啊。
+    #这样进行batch的训练，还挺巧的。
+    for i in range(0, ids.size(1) - seq_length, seq_length):#每30个token算一句
         # Get mini-batch inputs and targets
-        inputs = ids[:, i:i+seq_length].to(device)
-        targets = ids[:, (i+1):(i+1)+seq_length].to(device)
-        
+        inputs = ids[:, i:i+seq_length].to(device)#预测下一个word
+        targets = ids[:, (i+1):(i+1)+seq_length].to(device)#这里是否会存在下标越界的问题？
+        #不会越界，60-30，[0,30)，这样根本就i不会=30的。
         # Forward pass
         states = detach(states)
         outputs, states = model(inputs, states)
@@ -83,7 +84,7 @@ for epoch in range(num_epochs):
 
         step = (i+1) // seq_length
         if step % 100 == 0:
-            print ('Epoch [{}/{}], Step[{}/{}], Loss: {:.4f}, Perplexity: {:5.2f}'
+            print ('Epoch [{}/{}], Step[{}/{}], Loss: {:.4f}, Perplexity: {:5.2f}'#复杂度是loss的指数幂次？
                    .format(epoch+1, num_epochs, step, num_batches, loss.item(), np.exp(loss.item())))
 
 # Test the model
@@ -95,18 +96,18 @@ with torch.no_grad():
 
         # Select one word id randomly
         prob = torch.ones(vocab_size)
-        input = torch.multinomial(prob, num_samples=1).unsqueeze(1).to(device)
+        input = torch.multinomial(prob, num_samples=1).unsqueeze(1).to(device)  #shape=[1,1]
 
         for i in range(num_samples):
             # Forward propagate RNN 
-            output, state = model(input, state)
+            output, state = model(input, state)#预测下一个word
 
             # Sample a word id
-            prob = output.exp()
+            prob = output.exp()#从所有的vocab中选取一个
             word_id = torch.multinomial(prob, num_samples=1).item()
 
             # Fill input with sampled word id for the next time step
-            input.fill_(word_id)
+            input.fill_(word_id)#替换原来的input为目前的word_id
 
             # File write
             word = corpus.dictionary.idx2word[word_id]
